@@ -2,6 +2,10 @@
 
 Exploring strategies for flap-jack. See [code](src/Top.hs).
 
+    twist-N : Twist a fixed number of cards (a really dumb strategy).
+    reach-N : Twist until we reach an accumulated goal: 16..25 (an ok simple strategy).
+
+
 ```
 $ stack run
 *flap-jack*
