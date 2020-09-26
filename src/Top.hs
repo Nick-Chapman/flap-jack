@@ -2,7 +2,7 @@
 module Top (main) where
 
 import System.Random (getStdRandom,randomR)
-import Data.List (sortOn)
+import Data.List (sortOn,nub,sort)
 
 newtype Card = Card Int -- 1..13, -1..-13
   deriving Show
@@ -52,8 +52,9 @@ randomHands n = do
 -- | A list of named-strategies for comparison.
 stratsToConsider :: [(String,Strat)]
 stratsToConsider =
-  [("twist-"++show n, twistN n) | n <- [0..11] ] ++
-  [("reach-"++show n, reachN n) | n <- [16..25] ]
+  [("twist-"++show n, twistN n) | n <- [7] ] ++
+  [("reach-"++show n, reachN n) | n <- [16..25] ] ++
+  [("reach-chances-"++show (a,b,c), reachChances (a,b,c)) | a <- [18..21], b <- [a..21], c <- [b..21] ]
 
 -- | Twist a fixed number of cards (a really dumb strategy).
 twistN :: Int -> Strat
@@ -98,7 +99,12 @@ godScore (Hand cards) = scoring (maximum [ sumTwisted (take n cards) | n <- [0..
 -- | Compute the accumulated-sum/bust for a sequence of twisted cards.
 sumTwisted :: [Card] -> HandSum
 sumTwisted twisted = do
-  maximum [loop ah 0 twisted | ah <- allAceHandling]
+  maximum [sumTwistedAH ah twisted | ah <- allAceHandling]
+
+-- | Compute the accumulated-sum/bust for a sequence of twisted cards (given specific ace-handling)
+sumTwistedAH :: AceHandling -> [Card] -> HandSum
+sumTwistedAH ah twisted = do
+  loop ah 0 twisted
   where
     loop :: AceHandling -> Int -> [Card] -> HandSum
     loop ah acc = \case
@@ -155,3 +161,27 @@ randUpto :: Int -> IO Int
 randUpto n =
   if n<=0 then error "randUpto, n<=0" else
     getStdRandom (randomR (0,n-1))
+
+
+-- Try more complicated strategy, based on ace-chances in seen cards
+-- But does not achieve anything useful :(
+
+-- | Twist until we reach goals a/b/c, depending on chanced-sum
+reachChances :: (Int,Int,Int) -> Strat
+reachChances (a,b,c) = Strat $ \seen -> do
+  case chancedSum seen of
+    Busted -> Stick
+    AccNoChances acc -> if acc >= a then Stick else Twist
+    AccOneChance acc -> if acc >= b then Stick else Twist
+    AccTwoChances acc -> if acc >= c then Stick else Twist
+
+data ChancedSum = Busted | AccNoChances Int | AccOneChance Int | AccTwoChances Int
+
+chancedSum :: [Card] -> ChancedSum
+chancedSum twisted =
+  case nub (sort [n | ah <- allAceHandling, Accumulated n <- [sumTwistedAH ah twisted] ]) of
+    [] -> Busted
+    [x] -> AccNoChances x
+    [_,x] -> AccOneChance x
+    [_,_,x] -> AccTwoChances x
+    _ -> error "chancedSum"
