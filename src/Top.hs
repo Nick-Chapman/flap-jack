@@ -10,9 +10,9 @@ newtype Card = Card Int -- 1..13, -1..-13
 newtype Hand = Hand [Card]
   deriving Show
 
-data AceScoreChoce = Ace1 | Ace11
+data AceScoreChoice = Ace1 | Ace11
 
-data AceHandling = AceHandling { pos:: AceScoreChoce, neg:: AceScoreChoce }
+data AceHandling = AceHandling { pos:: AceScoreChoice, neg:: AceScoreChoice }
 
 data HandSum = Bust | Accumulated Int -- Bust / -inf..25
   -- Bust orders below any accumulated score
@@ -54,7 +54,7 @@ stratsToConsider =
   [("twist-"++show n, twistN n) | n <- [0..11] ] ++
   [("reach-"++show n, reachN n) | n <- [16..25] ]
 
--- | Twist a fixed number of cards (a really dummy strategy).
+-- | Twist a fixed number of cards (a really dumb strategy).
 twistN :: Int -> Strat
 twistN n = Strat (\seen -> if length seen >= n then Stick else Twist)
 
