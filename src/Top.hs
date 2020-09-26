@@ -40,6 +40,7 @@ main = do
         ]
   -- print the results in ascending order; worse->better
   mapM_ print (reverse (sortOn snd results))
+  print ("god-score", average (map godScore hands))
 
 -- | Generate a list of n random hands.
 randomHands :: Int -> IO [Hand]
@@ -89,6 +90,10 @@ playStrat strat (Hand cards) =
           case runStrat strat (take n cards) of
             Stick -> HandAction {stickAfter = n}
             Twist -> loop (n+1)
+
+-- | Best possible score for a hand
+godScore :: Hand -> HandScore
+godScore (Hand cards) = scoring (maximum [ sumTwisted (take n cards) | n <- [0..26] ])
 
 -- | Compute the accumulated-sum/bust for a sequence of twisted cards.
 sumTwisted :: [Card] -> HandSum
