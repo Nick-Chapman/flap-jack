@@ -2,7 +2,7 @@
 module Top (main) where
 
 import System.Random (getStdRandom,randomR)
-import Data.List (sortOn,nub,sort)
+import Data.List (sortOn) --,sort,nub
 
 newtype Card = Card Int -- 1..13, -1..-13
   deriving Show
@@ -31,7 +31,7 @@ newtype HandAction = HandAction { stickAfter :: Int } -- 0..26
 main :: IO ()
 main = do
   putStrLn "*flap-jack*"
-  hands <- randomHands 1000
+  hands <- randomHands 10000
   --mapM_ print hands
   -- run each strategy on all hands
   let results =
@@ -53,8 +53,8 @@ randomHands n = do
 stratsToConsider :: [(String,Strat)]
 stratsToConsider =
   [("twist-"++show n, twistN n) | n <- [7] ] ++
-  [("reach-"++show n, reachN n) | n <- [16..25] ] ++
-  [("reach-chances-"++show (a,b,c), reachChances (a,b,c)) | a <- [18..21], b <- [a..21], c <- [b..21] ]
+  [("reach-"++show n, reachN n) | n <- [16..25] ]
+--  [("reach-chances-"++show (a,b,c), reachChances (a,b,c)) | a <- [18..21], b <- [a..21], c <- [b..21] ]
 
 -- | Twist a fixed number of cards (a really dumb strategy).
 twistN :: Int -> Strat
@@ -163,6 +163,7 @@ randUpto n =
     getStdRandom (randomR (0,n-1))
 
 
+{-
 -- Try more complicated strategy, based on ace-chances in seen cards
 -- But does not achieve anything useful :(
 
@@ -185,3 +186,4 @@ chancedSum twisted =
     [_,x] -> AccOneChance x
     [_,_,x] -> AccTwoChances x
     _ -> error "chancedSum"
+-}
